@@ -27,7 +27,7 @@ end
 """
     LinearConstraint(a, b)
 
-represents the constraint `a^T x \\leq b`
+represents the constraint ``a^T x \\leq b``
 """
 struct LinearConstraint{F}
   a::Vector{F}
@@ -37,13 +37,18 @@ end
 """
     LinearConstraints(A, b)
 
-represents the constraint `A x \\leq b`
+represents the linear constraints ``A x \\leq b``
 """
 struct LinearConstraints{F}
   A::Matrix{F}
   b::Vector{F}
 end
 
+"""
+  constraints(P::Polyhedron_2D)
+
+converts a polyhedron representation into a linear constraints matrix
+"""
 function constraints(P::Polyhedron_2D{F}) where {F}
 
   A = zeros(F, length(P.vs), 2)
@@ -58,7 +63,21 @@ function constraints(P::Polyhedron_2D{F}) where {F}
 end
     
 
+"""
+    seedDecomp_2D(pos, obs, bbox, dilation_radius, max_poly=1)
 
+Perform a seed decomposition in a 2D space.
+
+Inputs:
+  - `pos` is the starting point of the seed
+  - `obs` is a vector of points representing obstacles in the environment. In the format `[[x1, y1], [x2, y2], ....]`
+  - `bbox` is the size of the bounding box within which the decomposition should happen
+  - `dilation_radius` is the dilation radius (refer to original paper)
+  - `max_poly` is the assumed maximum number of hyperplanes in the resulting solution. If this is smaller than the true number, the library is called again with a larger `max_poly`.
+
+Returns:
+  - `Polyhedron_2D` representing the free space.
+"""
 function seedDecomp_2D(pos, obs, bbox, dilation_radius, max_poly=1)
 
   obs_x = [Float32(o[1]) for o in obs]
