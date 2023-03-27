@@ -10,13 +10,15 @@ using Test
 
     res = seedDecomp(pos, obs, bbox, 0.1)
 
+    @test length(res) == 8
 
-    @test length(res.vs) == 8
+    A, b = constraints_matrix(res)
 
-    cons = LinearConstraints(res)
+    @test size(A) == (8, 2) 
+    @test size(b) == (8,) 
 
-    @test size(cons.A) == (8, 2) 
-    @test size(cons.b) == (8,) 
+    @test any(isnan.(A)) == false
+    @test any(isnan.(b)) == false
 
 
 end
@@ -31,11 +33,14 @@ end
     res = seedDecomp(pos, obs, bbox, 0.1)
 
 
-    @test length(res.vs) == 10
+    @test length(res) == 10
 
-    cons = LinearConstraints(res)
+    A, b = constraints_matrix(res)
 
-    @test size(cons.A) == (10, 3)
-    @test size(cons.b) == (10, )
+    @test size(A) == (10, 3)
+    @test size(b) == (10, )
+    
+    @test any(isnan.(A)) == false
+    @test any(isnan.(b)) == false
 
 end

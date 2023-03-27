@@ -5,14 +5,16 @@ using StaticArrays
 using DecompUtil_jll
 
 
-export Hyperplane, Polyhedron, LinearConstraint, LinearConstraints
-export seedDecomp
+export seedDecomp, constraints_matrix
 
 
 """
     Hyperplane{N, F}(p, n)
 
 represents a hyperplane passing through the point `p` with normal vector `n`. `N` is the dimension, `F` is the type of the vector. Uses StaticVectors to represent p and n internally.
+
+Example:
+    Hyperplane([1.0, 0.0], [1.0, 1.0])
 """
 struct Hyperplane{N, F}
     p::SVector{N, F}
@@ -25,62 +27,44 @@ function Hyperplane(p, n)
     p_, n_ = promote(p, n)
     F = eltype(p_)
     sp_ = SVector{N,F}(p_...) 
-    sn_ = SVector{N,F}(n_...) 
+    sn_ = SVector{N,F}(n_...)
     return Hyperplane{N, F}(sp_, sn_)
 end
 
 """
-    Polyhedron(vs::Vector{Hyperplane})
-
-represents a 2D polyhedron using a set of hyperplanes. Each hyperplane's normal points outside the set.
+    shrink(vs::Vector{Hyperplane})
 """
-struct Polyhedron{N, F}
-    vs::Vector{Hyperplane{N, F}}
-end
+function shrink(vs::V, d) where {N, F, V<:AbstractVector{Hyperplane{N, F}}}
 
+    res = Hyperplane{N, F}[]
 
-"""
-    LinearConstraint(a, b)
-
-represents the constraint ``a^T x \\leq b``
-"""
-struct LinearConstraint{N, F}
-    a::SVector{N, F}
-    b::F
-end
-
-"""
-    LinearConstraints(A, b)
-
-represents the linear constraints ``A x \\leq b``
-"""
-struct LinearConstraints{N, F}
-    A::Matrix{F}
-    b::Vector{F}
-end
-
-function LinearConstraints(A::Matrix{F}, b::Vector{F}) where {F}
-    N = size(A, 2)
-    return LinearConstraints{N, F}(A, b)
-end
-
-"""
-  LinearConstraints(P::Polyhedron)
-
-constructs a linear constraints matrix from a polyhedron
-"""
-function LinearConstraints(P::Polyhedron{N, F}) where {N, F}
-
-    A = zeros(F, length(P.vs), N)
-    b = zeros(F, length(P.vs))
-    for i = 1:length(P.vs)
-        for j=1:N
-            A[i, j] = P.vs[i].n[j]
-        end
-        b[i] = dot(P.vs[i].n, P.vs[i].p)
+    for v in vs
+        v_ = Hyperplane(v.p - convert(F, d)*v.n/norm(v.n), v.n)
+        push!(res, v_)
     end
 
-    return LinearConstraints{N, F}(A, b)
+    return res
+end
+
+
+
+"""
+  constraints_matrix(vs::Vector{Hyperplane})
+
+constructs a linear constraints matrix from a list of hyperplanes
+"""
+function constraints_matrix(vs::V) where {N, F, V<:AbstractVector{Hyperplane{N, F}}}
+
+    A = zeros(F, length(vs), N)
+    b = zeros(F, length(vs))
+    for i = 1:length(vs)
+        for j=1:N
+            A[i, j] = vs[i].n[j]
+        end
+        b[i] = dot(vs[i].n, vs[i].p)
+    end
+
+    return A, b
 end
 
 
@@ -184,7 +168,7 @@ function seedDecomp_2D(pos, obs, bbox, dilation_radius, max_poly = 1)
 
     # there are enough points, return the polyhedron
     vs = [Hyperplane([px[i], py[i]], [nx[i], ny[i]]) for i = 1:n_poly]
-    return Polyhedron(vs)
+    return vs
 
 end
 
@@ -201,7 +185,7 @@ Inputs:
   - `max_poly` is the assumed maximum number of hyperplanes in the resulting solution. If this is smaller than the true number, the function is called again with a larger `max_poly`.
 
 Returns:
-  - `Polyhedron` representing the free space.
+  - `Vector{Hyperplane}` representing the free space.
 """
 function seedDecomp_3D(pos, obs, bbox, dilation_radius, max_poly = 1)
 
@@ -267,7 +251,7 @@ function seedDecomp_3D(pos, obs, bbox, dilation_radius, max_poly = 1)
 
     # there are enough points, return the polyhedron
     vs = [Hyperplane([px[i], py[i], pz[i]], [nx[i], ny[i], nz[i]]) for i = 1:n_poly]
-    return Polyhedron(vs)
+    return vs
 
 end
 
