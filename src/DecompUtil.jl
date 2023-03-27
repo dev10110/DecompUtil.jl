@@ -32,7 +32,11 @@ function Hyperplane(p, n)
 end
 
 """
-    shrink(vs::Vector{Hyperplane})
+    shrink(vs::Vector{Hyperplane}, d)
+
+returns a new list of hyperplanes, where the free space has been decreased by a margin `d`. 
+You can pass in negative values for `d` if you want to expand the region. 
+There is no guarantee that the resulting polyhedron is non-empty, or that it doesnt include redundant constraints. 
 """
 function shrink(vs::V, d) where {N, F, V<:AbstractVector{Hyperplane{N, F}}}
 

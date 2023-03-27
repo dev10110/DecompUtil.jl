@@ -29,7 +29,7 @@ For those interested, the wrapper works by exposing a [`C` interface](https://gi
 
 ## Quick Start
 
-This library exports only one main thing: `seedDecomp`. This performs a decomposition in a 2D or 3D space, and returns a set of hyperplanes that indicate the safe flight corridor. 
+The main export of this library is `seedDecomp`. This performs a decomposition in a 2D or 3D space, and returns a set of hyperplanes that indicate the safe flight corridor. 
 
 2D example:
 ```@example main
