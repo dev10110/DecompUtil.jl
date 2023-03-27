@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Home · DecompUtil.jl</title><script data-outdated-warner src="assets/warner.js"></script><link rel="canonical" href="https://dev10110.github.io/DecompUtil.jl/"/><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.045/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.13.24/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="assets/documenter.js"></script><script src="siteinfo.js"></script><script src="../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href>DecompUtil.jl</a></span></div><form class="docs-search" action="search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li class="is-active"><a class="tocitem" href>Home</a><ul class="internal"><li><a class="tocitem" href="#Quick-Start"><span>Quick Start</span></a></li><li><a class="tocitem" href="#Reference"><span>Reference</span></a></li></ul></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>Home</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Home</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/dev10110/DecompUtil.jl/blob/main/docs/src/index.md#" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><h1 id="DecompUtil"><a class="docs-heading-anchor" href="#DecompUtil">DecompUtil</a><a id="DecompUtil-1"></a><a class="docs-heading-anchor-permalink" href="#DecompUtil" title="Permalink"></a></h1><p>Documentation for <a href="https://github.com/dev10110/DecompUtil.jl">DecompUtil</a>.</p><p>This is a julia wrapper to <a href="https://github.com/sikang/DecompUtil">DecompUtil</a>, created by Devansh Agrawal. I have added a few small functionalities, but have not exported all of the functions provided by the original authors. If there are some particular functions you would like to be able to use, let me know and I should be able to wrap them without much difficulty. </p><p>This is research code, and so there is no guarantee of correctness, but so far it has worked well for me. If you find an error, please let me know by raising a Github Issue. </p><p>All credits should go to the original authors:</p><pre><code class="nohighlight hljs">@article{liu2017planning,
+  title={Planning dynamically feasible trajectories for quadrotors using safe flight corridors in 3-d complex environments},
+  author={Liu, Sikang and Watterson, Michael and Mohta, Kartik and Sun, Ke and Bhattacharya, Subhrajit and Taylor, Camillo J and Kumar, Vijay},
+  journal={IEEE Robotics and Automation Letters},
+  volume={2},
+  number={3},
+  pages={1688--1695},
+  year={2017},
+  publisher={IEEE}
+}</code></pre><p>For those interested, the wrapper works by exposing a <a href="https://github.com/dev10110/DecompUtil_C"><code>C</code> interface</a> to the original library, creating a <a href="https://github.com/JuliaBinaryWrappers/DecompUtil_jll.jl">JLL package</a> using <a href="https://github.com/JuliaPackaging/BinaryBuilder.jl">BinaryBuilder</a>, and then creating the <a href="https://github.com/dev10110/DecompUtil.jl">Julia package</a>.</p><h2 id="Quick-Start"><a class="docs-heading-anchor" href="#Quick-Start">Quick Start</a><a id="Quick-Start-1"></a><a class="docs-heading-anchor-permalink" href="#Quick-Start" title="Permalink"></a></h2><p>This library exports only one main thing: <code>seedDecomp</code>. This performs a decomposition in a 2D or 3D space, and returns a set of hyperplanes that indicate the safe flight corridor. </p><p>2D example:</p><pre><code class="language-julia hljs">using DecompUtil
+
+# seed from which the decomposition starts
+pos = [0,0.]
+
+# define all the obstacle points
+obs = [[-0.2, 1.5], [1, 0.], [0.8,-1.], [ -0.5, -0.5]]
+
+# defines the bounding box (i.e., -2:2 on x axis, -2:2 on y axis)
+bbox = [2,2.]
+
+# I am honestly not too sure what this does,
+# and it doesnt seem to have an impact on the result.
+# (but it needs to be greater than 0)
+dilation_radius = 0.1
+
+result = seedDecomp(pos, obs, bbox, dilation_radius)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">8-element Vector{DecompUtil.Hyperplane{2, Float32}}:
+ DecompUtil.Hyperplane{2, Float32}(Float32[-0.5, -0.5], Float32[-0.70710677, -0.70710677])
+ DecompUtil.Hyperplane{2, Float32}(Float32[1.0, 0.0], Float32[1.0, 0.0])
+ DecompUtil.Hyperplane{2, Float32}(Float32[0.8, -1.0], Float32[0.62469506, -0.7808688])
+ DecompUtil.Hyperplane{2, Float32}(Float32[-0.2, 1.5], Float32[-0.13216372, 0.9912279])
+ DecompUtil.Hyperplane{2, Float32}(Float32[0.0, 2.0], Float32[0.0, 1.0])
+ DecompUtil.Hyperplane{2, Float32}(Float32[0.0, -2.0], Float32[-0.0, -1.0])
+ DecompUtil.Hyperplane{2, Float32}(Float32[2.0, 0.0], Float32[1.0, 0.0])
+ DecompUtil.Hyperplane{2, Float32}(Float32[-2.0, 0.0], Float32[-1.0, -0.0])</code></pre><p>This returns a vector of <code>Hyperplane</code>s. Each hyperplane <code>v</code> has a point <code>v.p</code> and a normal <code>v.n</code> and defines the free area as the halfspace: </p><p class="math-container">\[\{ x : n^T x \leq n^T p \}\]</p><p>We can convert it to a constraints matrix of the form <span>$Ax \leq b$</span>:</p><pre><code class="language-julia hljs">A, b = constraints_matrix(result)
+
+A</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">8×2 Matrix{Float32}:
+ -0.707107  -0.707107
+  1.0        0.0
+  0.624695  -0.780869
+ -0.132164   0.991228
+  0.0        1.0
+ -0.0       -1.0
+  1.0        0.0
+ -1.0       -0.0</code></pre><pre><code class="language-julia hljs">b</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">8-element Vector{Float32}:
+ 0.70710677
+ 1.0
+ 1.2806249
+ 1.5132747
+ 2.0
+ 2.0
+ 2.0
+ 2.0</code></pre><p>and we can verify that the seed lies inside this polyhedron:</p><pre><code class="language-julia hljs">A * pos - b</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">8-element Vector{Float64}:
+ -0.7071067690849304
+ -1.0
+ -1.2806248664855957
+ -1.5132746696472168
+ -2.0
+ -2.0
+ -2.0
+ -2.0</code></pre><pre><code class="language-julia hljs">A * pos &lt;= b</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">true</code></pre><p>Since we provide a bounding box, the result is always a bounded polyhedron. </p><p>We can visualize it as follows:</p><pre><code class="language- hljs">using Plots
+
+function plot_2D!(pos, obs, bbox, res)
+    
+    scatter!([pos[1]], [pos[2]], label=&quot;Seed&quot;)
+    scatter!(first.(obs), last.(obs), label=&quot;Obstacles&quot;)
+    vline!([pos[1] - bbox[1], pos[1] + bbox[1]], label=&quot;Bounding Box&quot;, linestyle=:dash, linewidth=2, color=:black)
+    hline!([pos[2] - bbox[2], pos[2] + bbox[2]], label=false, linestyle=:dash, linewidth=2, color=:black)
+
+    for (i, v) in enumerate(res)
+        p = v.p
+        n = v.n
+        lab = i==1 ? &quot;Hyperplane&quot; : false
+        plot!(t -&gt; p[1] + n[2]*t, t-&gt; p[2] - n[1]*t, -4,4, label=lab, color=:blue)
+    end
+
+    # plot!(legend = :outerleft)
+
+    
+end
+
+
+plot()
+plot_2D!(pos, obs, bbox, result)
+xlims!(-2.5, 2.5)
+ylims!(-2.5, 2.5)
+plot!(aspect_ratio=:equal)</code></pre><p>Finally, for convenience, a <code>shrink</code> function is provided, that shrinks the polyhedron by a distance <code>d</code></p><pre><code class="language- hljs">
+shrunk_result = DecompUtil.shrink(result, 0.3)
+
+plot()
+plot_2D!(pos, obs, bbox, shrunk_result)
+xlims!(-2.5, 2.5)
+ylims!(-2.5, 2.5)
+plot!(aspect_ratio=:equal)</code></pre><p>Note, there is no guarantee that the shrunk polyhedron contains the seed, or indeed is non-empty. Also, note the polyhedron can have redundant constraints.  </p><p>Note, no plotting utilities are not exported, so as to not introduce dependencies on plotting. </p><h2 id="Reference"><a class="docs-heading-anchor" href="#Reference">Reference</a><a id="Reference-1"></a><a class="docs-heading-anchor-permalink" href="#Reference" title="Permalink"></a></h2><ul><li><a href="#DecompUtil.Hyperplane"><code>DecompUtil.Hyperplane</code></a></li><li><a href="#DecompUtil.constraints_matrix-Union{Tuple{V}, Tuple{F}, Tuple{N}} where {N, F, V&lt;:AbstractArray{DecompUtil.Hyperplane{N, F}, 1}}"><code>DecompUtil.constraints_matrix</code></a></li><li><a href="#DecompUtil.seedDecomp"><code>DecompUtil.seedDecomp</code></a></li><li><a href="#DecompUtil.seedDecomp_2D"><code>DecompUtil.seedDecomp_2D</code></a></li><li><a href="#DecompUtil.seedDecomp_3D"><code>DecompUtil.seedDecomp_3D</code></a></li><li><a href="#DecompUtil.shrink-Union{Tuple{V}, Tuple{F}, Tuple{N}, Tuple{V, Any}} where {N, F, V&lt;:AbstractArray{DecompUtil.Hyperplane{N, F}, 1}}"><code>DecompUtil.shrink</code></a></li></ul><article class="docstring"><header><a class="docstring-binding" id="DecompUtil.Hyperplane" href="#DecompUtil.Hyperplane"><code>DecompUtil.Hyperplane</code></a> — <span class="docstring-category">Type</span></header><section><div><pre><code class="language-julia hljs">Hyperplane{N, F}(p, n)</code></pre><p>represents a hyperplane passing through the point <code>p</code> with normal vector <code>n</code>. <code>N</code> is the dimension, <code>F</code> is the type of the vector. Uses StaticVectors to represent p and n internally.</p><p>Example:     Hyperplane([1.0, 0.0], [1.0, 1.0])</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/dev10110/DecompUtil.jl/blob/d42d2ac3889c16ad1560e1cf3de3627f66205956/src/DecompUtil.jl#L11-L18">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="DecompUtil.constraints_matrix-Union{Tuple{V}, Tuple{F}, Tuple{N}} where {N, F, V&lt;:AbstractArray{DecompUtil.Hyperplane{N, F}, 1}}" href="#DecompUtil.constraints_matrix-Union{Tuple{V}, Tuple{F}, Tuple{N}} where {N, F, V&lt;:AbstractArray{DecompUtil.Hyperplane{N, F}, 1}}"><code>DecompUtil.constraints_matrix</code></a> — <span class="docstring-category">Method</span></header><section><div><p>constraints_matrix(vs::Vector{Hyperplane})</p><p>constructs a linear constraints matrix from a list of hyperplanes</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/dev10110/DecompUtil.jl/blob/d42d2ac3889c16ad1560e1cf3de3627f66205956/src/DecompUtil.jl#L51-L55">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="DecompUtil.seedDecomp" href="#DecompUtil.seedDecomp"><code>DecompUtil.seedDecomp</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia hljs">seedDecomp(pos, obs, bbox, dilation_radius, max_poly=1)</code></pre><p>Perform a seed decomposition in a 2D or 3D space.</p><p>Inputs:</p><ul><li><code>pos</code> is the starting point of the seed</li><li><code>obs</code> is a vector of points representing obstacles in the environment. In the format <code>[[x1, y1], [x2, y2], ....]</code>. You can pass in a vector of static arrays if you want. </li><li><code>bbox</code> is the size of the bounding box within which the decomposition should happen</li><li><code>dilation_radius</code> is the dilation radius (refer to original paper)</li><li><code>max_poly</code> is the assumed maximum number of hyperplanes in the resulting solution. If this is smaller than the true number, the library is called again with a larger <code>max_poly</code>.</li></ul><p>Returns:</p><ul><li><code>Polyhedron</code> representing the free space.</li></ul></div><a class="docs-sourcelink" target="_blank" href="https://github.com/dev10110/DecompUtil.jl/blob/d42d2ac3889c16ad1560e1cf3de3627f66205956/src/DecompUtil.jl#L72-L86">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="DecompUtil.seedDecomp_2D" href="#DecompUtil.seedDecomp_2D"><code>DecompUtil.seedDecomp_2D</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia hljs">seedDecomp_2D(pos, obs, bbox, dilation_radius, max_poly=1)</code></pre><p>Perform a seed decomposition in a 2D space.</p><p>Inputs:</p><ul><li><code>pos</code> is the starting point of the seed</li><li><code>obs</code> is a vector of points representing obstacles in the environment. In the format <code>[[x1, y1], [x2, y2], ....]</code></li><li><code>bbox</code> is the size of the bounding box within which the decomposition should happen</li><li><code>dilation_radius</code> is the dilation radius (refer to original paper)</li><li><code>max_poly</code> is the assumed maximum number of hyperplanes in the resulting solution. If this is smaller than the true number, the library is called again with a larger <code>max_poly</code>.</li></ul><p>Returns:</p><ul><li><code>Polyhedron</code> representing the free space.</li></ul></div><a class="docs-sourcelink" target="_blank" href="https://github.com/dev10110/DecompUtil.jl/blob/d42d2ac3889c16ad1560e1cf3de3627f66205956/src/DecompUtil.jl#L105-L119">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="DecompUtil.seedDecomp_3D" href="#DecompUtil.seedDecomp_3D"><code>DecompUtil.seedDecomp_3D</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia hljs">seedDecomp_3D(pos, obs, bbox, dilation_radius, max_poly=1)</code></pre><p>Perform a seed decomposition in a 3D space.</p><p>Inputs:</p><ul><li><code>pos</code> is the starting point of the seed, e.g. <code>[x0, y0, z0]</code></li><li><code>obs</code> is a vector of points representing obstacles in the environment. In the format <code>[[x1, y1, z1], [x2, y2, z2], ....]</code></li><li><code>bbox</code> is the size of the bounding box within which the decomposition should happen</li><li><code>dilation_radius</code> is the dilation radius (refer to original paper)</li><li><code>max_poly</code> is the assumed maximum number of hyperplanes in the resulting solution. If this is smaller than the true number, the function is called again with a larger <code>max_poly</code>.</li></ul><p>Returns:</p><ul><li><code>Vector{Hyperplane}</code> representing the free space.</li></ul></div><a class="docs-sourcelink" target="_blank" href="https://github.com/dev10110/DecompUtil.jl/blob/d42d2ac3889c16ad1560e1cf3de3627f66205956/src/DecompUtil.jl#L175-L189">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="DecompUtil.shrink-Union{Tuple{V}, Tuple{F}, Tuple{N}, Tuple{V, Any}} where {N, F, V&lt;:AbstractArray{DecompUtil.Hyperplane{N, F}, 1}}" href="#DecompUtil.shrink-Union{Tuple{V}, Tuple{F}, Tuple{N}, Tuple{V, Any}} where {N, F, V&lt;:AbstractArray{DecompUtil.Hyperplane{N, F}, 1}}"><code>DecompUtil.shrink</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">shrink(vs::Vector{Hyperplane})</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/dev10110/DecompUtil.jl/blob/d42d2ac3889c16ad1560e1cf3de3627f66205956/src/DecompUtil.jl#L34-L36">source</a></section></article></article><nav class="docs-footer"><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.24 on <span class="colophon-date" title="Monday 27 March 2023 20:31">Monday 27 March 2023</span>. Using Julia version 1.8.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
