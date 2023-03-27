@@ -8,16 +8,34 @@ using Test
     obs = [[-0.2, 1.5], [1, 0.], [0.8,-1.], [ -0.5, -0.5]]
     bbox = [2,2.]
 
-    res = DecompUtil.seedDecomp_2D(pos, obs, bbox, 0.1)
+    res = seedDecomp(pos, obs, bbox, 0.1)
 
-    println(res)
 
     @test length(res.vs) == 8
 
-    cons = DecompUtil.constraints(res)
+    cons = LinearConstraints(res)
 
-    println(cons.A)
+    @test size(cons.A) == (8, 2) 
+    @test size(cons.b) == (8,) 
 
-    println(cons.b)
+
+end
+
+@testset "DecompUtil.jl - 3D Seed Decomposition" begin
+    
+
+    pos = [0,0., 0.0]
+    obs = [[-0.2, 1.5, 1], [1, 0., -1], [0.8,-1., 1], [ -0.5, -0.5, -1]]
+    bbox = [2,2., 2.]
+
+    res = seedDecomp(pos, obs, bbox, 0.1)
+
+
+    @test length(res.vs) == 10
+
+    cons = LinearConstraints(res)
+
+    @test size(cons.A) == (10, 3)
+    @test size(cons.b) == (10, )
 
 end
