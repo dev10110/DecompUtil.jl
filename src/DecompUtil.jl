@@ -172,7 +172,9 @@ function seedDecomp_2D(pos, obs, bbox, dilation_radius, max_poly = 1)
     end
 
     # there are enough points, return the polyhedron
-    vs = [Hyperplane([px[i], py[i]], [nx[i], ny[i]]) for i = 1:n_poly]
+    vs = [Hyperplane{2, Float32}(
+                     SVector(px[i], py[i]), 
+                     SVector(nx[i], ny[i])) for i = 1:n_poly]
     return vs
 
 end
@@ -255,11 +257,28 @@ function seedDecomp_3D(pos, obs, bbox, dilation_radius, max_poly = 1)
     end
 
     # there are enough points, return the polyhedron
-    vs = [Hyperplane([px[i], py[i], pz[i]], [nx[i], ny[i], nz[i]]) for i = 1:n_poly]
+    vs = [Hyperplane{3, Float32}(
+                     SVector(px[i], py[i], pz[i]),
+                     SVector(nx[i], ny[i], nz[i])) for i = 1:n_poly]
     return vs
 
 end
 
+"""
+    seedDecomp_3D_fast(pos, obs_x, obs_y, obs_z, bbox, dilation_radius, max_poly=100)
+
+Perform a seed decomposition in a 3D space, but a slightly more optimized version.
+
+Inputs:
+  - `pos` is the starting point of the seed, e.g. `[x0, y0, z0]`
+  - `obs_x`, `obs_y`, `obs_z` are each  vectors representing obstacles in the environment.
+  - `bbox` is the size of the bounding box within which the decomposition should happen
+  - `dilation_radius` is the dilation radius (refer to original paper)
+  - `max_poly` is the assumed maximum number of hyperplanes in the resulting solution. If this is smaller than the true number, the function is called again with a larger `max_poly`.
+
+Returns:
+  - `Vector{Hyperplane}` representing the free space.
+"""
 function seedDecomp_3D_fast(pos, obs_x::VF, obs_y::VF, obs_z::VF, bbox, dilation_radius, max_poly = 100) where {VF <: AbstractVector{Float32}}
 
     nobs = Int32(length(obs_x))
@@ -332,10 +351,9 @@ function seedDecomp_3D_fast(pos, obs_x::VF, obs_y::VF, obs_z::VF, bbox, dilation
     # return A, b
 
     # there are enough points, return the polyhedron
-    vs = [Hyperplane(
+    vs = [Hyperplane{3, Float32}(
                      SVector(px[i], py[i], pz[i]), 
-                     SVector(nx[i], ny[i], nz[i])
-                    ) for i = 1:n_poly]
+                     SVector(nx[i], ny[i], nz[i])) for i = 1:n_poly]
     return vs
 
 end
