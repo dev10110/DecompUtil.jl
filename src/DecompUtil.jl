@@ -6,6 +6,7 @@ using DecompUtil_jll
 
 
 export seedDecomp, constraints_matrix
+export seedDecomp_3D_fast
 
 
 """
@@ -171,7 +172,9 @@ function seedDecomp_2D(pos, obs, bbox, dilation_radius, max_poly = 1)
     end
 
     # there are enough points, return the polyhedron
-    vs = [Hyperplane([px[i], py[i]], [nx[i], ny[i]]) for i = 1:n_poly]
+    vs = [Hyperplane{2, Float32}(
+                     SVector(px[i], py[i]), 
+                     SVector(nx[i], ny[i])) for i = 1:n_poly]
     return vs
 
 end
@@ -254,7 +257,103 @@ function seedDecomp_3D(pos, obs, bbox, dilation_radius, max_poly = 1)
     end
 
     # there are enough points, return the polyhedron
-    vs = [Hyperplane([px[i], py[i], pz[i]], [nx[i], ny[i], nz[i]]) for i = 1:n_poly]
+    vs = [Hyperplane{3, Float32}(
+                     SVector(px[i], py[i], pz[i]),
+                     SVector(nx[i], ny[i], nz[i])) for i = 1:n_poly]
+    return vs
+
+end
+
+"""
+    seedDecomp_3D_fast(pos, obs_x, obs_y, obs_z, bbox, dilation_radius, max_poly=100)
+
+Perform a seed decomposition in a 3D space, but a slightly more optimized version.
+
+Inputs:
+  - `pos` is the starting point of the seed, e.g. `[x0, y0, z0]`
+  - `obs_x`, `obs_y`, `obs_z` are each  vectors representing obstacles in the environment.
+  - `bbox` is the size of the bounding box within which the decomposition should happen
+  - `dilation_radius` is the dilation radius (refer to original paper)
+  - `max_poly` is the assumed maximum number of hyperplanes in the resulting solution. If this is smaller than the true number, the function is called again with a larger `max_poly`.
+
+Returns:
+  - `Vector{Hyperplane}` representing the free space.
+"""
+function seedDecomp_3D_fast(pos, obs_x::VF, obs_y::VF, obs_z::VF, bbox, dilation_radius, max_poly = 100) where {VF <: AbstractVector{Float32}}
+
+    nobs = Int32(length(obs_x))
+
+    px = Vector{Float32}(undef, max_poly)
+    py = Vector{Float32}(undef, max_poly)
+    pz = Vector{Float32}(undef, max_poly)
+    nx = Vector{Float32}(undef, max_poly)
+    ny = Vector{Float32}(undef, max_poly)
+    nz = Vector{Float32}(undef, max_poly)
+
+    n_poly = ccall(
+        (:seedDecomp3d_polyhedron, libdecomputil),
+        Int32,
+        (
+            Cfloat,
+            Cfloat,
+            Cfloat,  # pos
+            Clonglong, # nobs
+            Ptr{Cint},
+            Ptr{Cint},
+            Ptr{Cint}, #obsx, obsy
+            Cfloat,
+            Cfloat,
+            Cfloat, # local_bbox
+            Cfloat, # dilation radius
+            Clonglong, # max_npoly
+            Ptr{Cfloat},
+            Ptr{Cfloat},
+            Ptr{Cfloat}, # poly p
+            Ptr{Cfloat},
+            Ptr{Cfloat},
+            Ptr{Cfloat}, #poly n
+        ),
+        Float32(pos[1]),
+        Float32(pos[2]),
+        Float32(pos[3]),
+        nobs,
+        obs_x,
+        obs_y,
+        obs_z,
+        Float32(bbox[1]),
+        Float32(bbox[2]),
+        Float32(bbox[3]),
+        Float32(dilation_radius),
+        Int64(max_poly),
+        px,
+        py,
+        pz,
+        nx,
+        ny,
+        nz
+    )
+
+    if n_poly > max_poly
+        return seedDecomp_3D_fast(pos, obs_x, obs_y, obs_z, bbox, dilation_radius, n_poly)
+    end
+
+    # # return the polyhedron as A x <= b
+    # A = Matrix{Float32}(undef, n_poly, 3)
+    # b = Vector{Float32}(undef, n_poly)
+
+    # for i=1:n_poly
+    #     A[i, 1] = nx[i]
+    #     A[i, 2] = ny[i]
+    #     A[i, 3] = nz[i]
+    #     b[i]    = px[i]*nx[i] + py[i]*ny[i] + pz[i]*nz[i]
+    # end
+
+    # return A, b
+
+    # there are enough points, return the polyhedron
+    vs = [Hyperplane{3, Float32}(
+                     SVector(px[i], py[i], pz[i]), 
+                     SVector(nx[i], ny[i], nz[i])) for i = 1:n_poly]
     return vs
 
 end
